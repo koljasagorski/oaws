@@ -54,6 +54,31 @@ function esc(s) {
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
+function renderLastAdded() {
+  const el = $("#last-added");
+  const la = state.data.last_added;
+  if (!la) { el.hidden = true; return; }
+  el.hidden = false;
+  const pct = la.pct_delta === null || la.pct_delta === undefined
+    ? `<span class="na">n/a</span>`
+    : `<span class="pill ${la.pct_delta >= 0 ? "pos" : "neg"}">${fmtPct(la.pct_delta)}</span>`;
+  const ticker = la.ticker ? `<span class="la-ticker">${esc(la.ticker)}</span>` : "";
+  el.innerHTML = `
+    <p class="la-label">Zuletzt vorgestellt</p>
+    <div class="la-body">
+      <div class="la-main">
+        <span class="la-name">${esc(la.name)}</span>
+        ${ticker}
+        <span class="la-wkn">WKN ${esc(la.wkn)}</span>
+      </div>
+      <div class="la-meta">
+        <span class="la-date">am ${fmtDate(la.presented_date)}</span>
+        ${pct}
+      </div>
+    </div>
+    ${la.ep_title ? `<p class="la-ep">${esc(la.ep_title)}</p>` : ""}`;
+}
+
 function renderCards() {
   const a = agg();
   const card = (label, value, sub, cls) => `
@@ -158,6 +183,7 @@ function onSort(key) {
 }
 
 function render() {
+  renderLastAdded();
   renderCards();
   renderHead();
   renderRows();

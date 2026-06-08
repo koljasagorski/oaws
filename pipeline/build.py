@@ -61,6 +61,23 @@ def build_rows(mentions, wkn_map, prices):
     return rows
 
 
+def last_added(rows):
+    """Zuletzt vorgestellte Aktie: hoechstes Vorstellungsdatum (neuester Pick)."""
+    if not rows:
+        return None
+    r = max(rows, key=lambda x: x["presented_date"])
+    return {
+        "name": r["name"],
+        "wkn": r["wkn"],
+        "ticker": r["ticker"],
+        "presented_date": r["presented_date"],
+        "ep_title": r["ep_title"],
+        "pct_delta": r["pct_delta"],
+        "currency": r["currency"],
+        "resolved": r["resolved"],
+    }
+
+
 def first_mention_view(rows):
     """Erstnennung: je WKN nur das frueheste Vorstellungsdatum."""
     best = {}
@@ -125,6 +142,7 @@ def main() -> None:
         "as_of": as_of,
         "all": rows,
         "first": first,
+        "last_added": last_added(rows),
         "aggregates_all": aggregates(rows),
         "aggregates_first": aggregates(first),
     })
