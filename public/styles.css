@@ -47,6 +47,34 @@ body {
   white-space: nowrap; text-transform: uppercase; letter-spacing: .04em;
 }
 
+/* Zuletzt vorgestellt */
+.last-added {
+  background: var(--surface); border: 1px solid var(--line);
+  border-left: 3px solid var(--ink); border-radius: 12px;
+  padding: 16px 20px; box-shadow: var(--shadow); margin: 36px 0 0;
+}
+.last-added .la-label {
+  font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--muted); margin: 0 0 8px; font-weight: 600;
+}
+.last-added .la-body {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+}
+.last-added .la-main { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.last-added .la-name {
+  font-family: var(--serif); font-weight: 700; letter-spacing: -.01em;
+  font-size: 22px; line-height: 1.1;
+}
+.last-added .la-ticker {
+  font-family: var(--mono); font-size: 13px; color: var(--ink-soft);
+  background: #f0ece3; padding: 2px 7px; border-radius: 6px;
+}
+.last-added .la-wkn { font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+.last-added .la-meta { display: flex; align-items: baseline; gap: 12px; }
+.last-added .la-date { font-size: 13px; color: var(--ink-soft); }
+.last-added .la-ep { margin: 8px 0 0; font-size: 12.5px; color: var(--muted); }
+
 /* Cards */
 .cards {
   display: grid; gap: 16px; margin: 36px 0 28px;
