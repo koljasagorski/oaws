@@ -131,6 +131,38 @@ def yahoo_guesses(data):
     return [(sym, suffix) for _, sym, suffix in guesses]
 
 
+YAHOO_SEARCH = "https://query2.finance.yahoo.com/v1/finance/search"
+_UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36"}
+
+
+def yahoo_search(name):
+    """Fallback: Yahoo-Namenssuche -> Liste von EQUITY-Yahoo-Symbolen (in Trefferreihenfolge)."""
+    if not name:
+        return []
+    for attempt in range(4):
+        try:
+            r = requests.get(YAHOO_SEARCH,
+                             params={"q": name, "quotesCount": 8, "newsCount": 0},
+                             headers=_UA, timeout=15)
+            if r.status_code == 429:  # Yahoo-Rate-Limit -> Backoff
+                time.sleep(3 * (attempt + 1))
+                continue
+            r.raise_for_status()
+            out, seen = [], set()
+            for q in r.json().get("quotes", []):
+                if q.get("quoteType") != "EQUITY":
+                    continue
+                sym = (q.get("symbol") or "").strip()
+                if sym and sym not in seen:
+                    seen.add(sym)
+                    out.append(sym)
+            return out
+        except Exception:
+            time.sleep(2)
+    return []
+
+
 def validate(sym):
     """yfinance-Validierung. Liefert dict(currency, liquidity) oder None.
 
@@ -158,20 +190,36 @@ def validate(sym):
 MAX_GUESSES = 8  # pro WKN max. so viele Symbole validieren (Kostenbremse)
 
 
-def resolve_one(wkn, data):
-    candidates = []
-    for sym, suffix in yahoo_guesses(data)[:MAX_GUESSES]:
+def _pick(syms_suffixes, source):
+    cands = []
+    for sym, suffix in syms_suffixes[:MAX_GUESSES]:
         v = validate(sym)
         if v is not None:
-            candidates.append((v["liquidity"], sym, suffix, v["currency"]))
-    if candidates:
-        candidates.sort(reverse=True)  # hoechste Liquiditaet = Primaernotierung
-        _, sym, suffix, ccy = candidates[0]
-        return {"yahoo": sym, "currency": ccy or SUFFIX_CCY.get(suffix),
-                "exchange": suffix or "US", "source": "openfigi", "resolved": True}
-    name = next((d.get("name") for d in data if d.get("name")), None)
+            cands.append((v["liquidity"], sym, suffix, v["currency"]))
+    if not cands:
+        return None
+    cands.sort(reverse=True)  # hoechste Liquiditaet = Primaernotierung
+    _, sym, suffix, ccy = cands[0]
+    return {"yahoo": sym, "currency": ccy or SUFFIX_CCY.get(suffix),
+            "exchange": suffix or "US", "source": source, "resolved": True}
+
+
+def resolve_one(wkn, data, name=None):
+    # Stufe 2: OpenFIGI(WKN) -> Yahoo-Symbol-Kandidaten
+    res = _pick(yahoo_guesses(data), "openfigi")
+    if res:
+        return res
+    # Stufe 4 (Fallback): Yahoo-Namenssuche (kanonischer FIGI-Name bevorzugt)
+    figi_name = next((d.get("name") for d in data if d.get("name")), None)
+    query = figi_name or name
+    if query:
+        syms = yahoo_search(figi_name or name)
+        ss = [(s, ("." + s.split(".", 1)[1]) if "." in s else "") for s in syms]
+        res = _pick(ss, "yahoo_search")
+        if res:
+            return res
     return {"yahoo": None, "currency": None, "exchange": None,
-            "source": "unresolved", "resolved": False, "figi_name": name}
+            "source": "unresolved", "resolved": False, "figi_name": figi_name}
 
 
 def main() -> None:
@@ -189,6 +237,16 @@ def main() -> None:
         mentions = [m for m in mentions if m["presented_date"] >= cutoff]
 
     cache = load_json(WKN_MAP, default={}) or {}
+    # Committeten Override-Seed einmischen (gewinnt immer, §6) – auch auf frischer VM
+    from common import OVERRIDES  # lokal, vermeidet Import-Reihenfolge-Probleme
+    for w, ov in (load_json(OVERRIDES, default={}) or {}).items():
+        entry = dict(ov)
+        entry["source"] = "override"
+        entry.setdefault("resolved", True)
+        cache[w] = entry
+    wkn_names = {}  # fuer Yahoo-Namenssuche-Fallback
+    for m in mentions:
+        wkn_names.setdefault(m["wkn"], m.get("name"))
     want = []
     seen = set()
     for m in mentions:
@@ -215,16 +273,12 @@ def main() -> None:
     figi = figi_candidates(want)
     for i, w in enumerate(want, 1):
         data = figi.get(w, [])
-        if not data:
-            cache[w] = {"yahoo": None, "currency": None, "exchange": None,
-                        "source": "unresolved", "resolved": False}
-        else:
-            res = resolve_one(w, data)
-            # Namen aus OpenFIGI uebernehmen (kanonisch), wenn vorhanden
-            nm = next((d.get("name") for d in data if d.get("name")), None)
-            if nm:
-                res["name"] = nm.title() if nm.isupper() else nm
-            cache[w] = res
+        # resolve_one deckt auch leeres OpenFIGI-Ergebnis ab (Yahoo-Namenssuche-Fallback)
+        res = resolve_one(w, data, name=wkn_names.get(w))
+        nm = next((d.get("name") for d in data if d.get("name")), None)
+        if nm:
+            res["name"] = nm.title() if nm.isupper() else nm
+        cache[w] = res
         if i % 10 == 0 or i == len(want):
             print(f"  resolved {i}/{len(want)}", file=sys.stderr)
             save_json(WKN_MAP, cache)  # inkrementell sichern

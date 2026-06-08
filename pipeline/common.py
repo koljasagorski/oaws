@@ -13,6 +13,7 @@ PUBLIC = ROOT / "public"
 EPISODES = DATA / "episodes.json"
 MENTIONS = DATA / "mentions.json"
 WKN_MAP = DATA / "wkn_map.json"
+OVERRIDES = DATA / "overrides.json"  # committeter Seed (gewinnt immer, §6)
 PRICES = DATA / "prices.json"
 OUT_DATA = PUBLIC / "data.json"
 OUT_META = PUBLIC / "meta.json"

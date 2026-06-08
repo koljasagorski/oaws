@@ -2,6 +2,22 @@
 __pycache__/
 *.pyc
 .env
-data/cache/
 .DS_Store
 .gstack/
+
+# Caches & generierte Daten (werden auf der VM erzeugt) — NICHT committen
+data/cache/
+data/episodes.json
+data/mentions.json
+data/prices.json
+data/wkn_map.json
+data/config.json
+data/last_run.json
+data/run.log
+data/retry_resolve.log
+data/retry_chain.done
+data/.run.lock
+public/data.json
+public/meta.json
+
+# committet bleibt nur der kuratierte Override-Seed: data/overrides.json

@@ -1,0 +1,79 @@
+{
+  "923255": {
+    "name": "Daktronics",
+    "yahoo": "DAKT",
+    "currency": "USD",
+    "exchange": "US",
+    "source": "override"
+  },
+  "885036": {
+    "name": "Markel",
+    "yahoo": "MKL",
+    "currency": "USD",
+    "exchange": "US",
+    "source": "override"
+  },
+  "906866": {
+    "name": "Amazon",
+    "yahoo": "AMZN",
+    "currency": "USD",
+    "exchange": "US",
+    "source": "override"
+  },
+  "896801": {
+    "name": "IMAX",
+    "yahoo": "IMAX",
+    "currency": "USD",
+    "exchange": "US",
+    "source": "override"
+  },
+  "A3ETYB": {
+    "name": "Sandoz",
+    "yahoo": "SDZ.SW",
+    "currency": "CHF",
+    "exchange": "SW",
+    "source": "override"
+  },
+  "A1H5AN": {
+    "name": "D'Ieteren",
+    "yahoo": "DIE.BR",
+    "currency": "EUR",
+    "exchange": "BR",
+    "source": "override"
+  },
+  "593612": {
+    "name": "OHB",
+    "yahoo": "OHB.DE",
+    "currency": "EUR",
+    "exchange": "DE",
+    "source": "override"
+  },
+  "A2QDZ9": {
+    "name": "Academy Sports + Outdoors",
+    "yahoo": "ASO",
+    "currency": "USD",
+    "exchange": "US",
+    "source": "override"
+  },
+  "662541": {
+    "name": "Dick's Sporting Goods",
+    "yahoo": "DKS",
+    "currency": "USD",
+    "exchange": "US",
+    "source": "override"
+  },
+  "934251": {
+    "name": "Bread Financial",
+    "yahoo": "BFH",
+    "currency": "USD",
+    "exchange": "US",
+    "source": "override"
+  },
+  "A1C0JG": {
+    "name": "Edenred",
+    "yahoo": "EDEN.PA",
+    "currency": "EUR",
+    "exchange": "PA",
+    "source": "override"
+  }
+}
