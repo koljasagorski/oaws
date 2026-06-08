@@ -16,6 +16,7 @@ data/last_run.json
 data/run.log
 data/retry_resolve.log
 data/retry_chain.done
+data/deploy.log
 data/.run.lock
 public/data.json
 public/meta.json

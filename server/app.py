@@ -232,6 +232,36 @@ async def admin_js():
     return FileResponse(SERVER_DIR / "admin.js", media_type="application/javascript")
 
 
+@app.post("/api/github-webhook")
+async def github_webhook(request: Request):
+    """GitHub-Push -> Auto-Deploy (HMAC-verifiziert). Caddy routet HTTPS hierher."""
+    secret = read_env().get("GITHUB_WEBHOOK_SECRET")
+    if not secret:
+        raise HTTPException(503, "Webhook nicht konfiguriert")
+    body = await request.body()
+    sig = request.headers.get("X-Hub-Signature-256", "")
+    expected = "sha256=" + hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(sig, expected):
+        raise HTTPException(401, "ungueltige Signatur")
+    event = request.headers.get("X-GitHub-Event", "")
+    if event == "ping":
+        return {"ok": True, "pong": True}
+    if event != "push":
+        return {"ok": True, "ignored": event}
+    import json as _json
+    try:
+        ref = _json.loads(body).get("ref", "")
+    except Exception:
+        ref = ""
+    if ref and not (ref.endswith("/master") or ref.endswith("/main")):
+        return {"ok": True, "ignored_ref": ref}
+    # Detached deployen (ueberlebt den Service-Restart am Ende des Skripts)
+    subprocess.Popen(["bash", "deploy/auto-deploy.sh"], cwd=str(ROOT),
+                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                     start_new_session=True)
+    return {"ok": True, "deploying": True}
+
+
 @app.get("/healthz")
 async def healthz():
     return {"ok": True, "running": run_active()}
