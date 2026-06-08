@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OAWS Tracker — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .admin-wrap { max-width: 880px; margin: 0 auto; padding: 40px 28px 80px; }
+    .admin-wrap h1 { font-family: var(--serif); font-size: 32px; margin: 0 0 4px; letter-spacing: -.02em; }
+    .admin-wrap .sub { color: var(--ink-soft); margin: 0 0 28px; }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 22px 24px; margin-bottom: 18px; }
+    .panel h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 0 0 16px; font-weight: 600; }
+    .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+    label.fld { display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; color: var(--ink-soft); }
+    input, select { font: inherit; font-size: 14px; padding: 9px 11px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface); color: var(--ink); }
+    input:focus, select:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
+    .btn { font: inherit; font-size: 14px; font-weight: 500; padding: 9px 16px; border-radius: 8px; border: 1px solid var(--ink); background: var(--ink); color: #fff; cursor: pointer; }
+    .btn.secondary { background: var(--surface); color: var(--ink); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .stat { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); gap: 14px; }
+    .stat .k { font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+    .stat .v { font-family: var(--serif); font-size: 24px; font-weight: 700; }
+    .ok { color: var(--pos); } .bad { color: var(--neg); }
+    .badge { display: inline-block; font-family: var(--mono); font-size: 12px; padding: 2px 8px; border-radius: 6px; background: var(--pos-bg); color: var(--pos); }
+    .badge.run { background: #fff4e0; color: #9a6700; }
+    pre.log { font-family: var(--mono); font-size: 11.5px; background: #14130f; color: #d8d2c4; padding: 14px; border-radius: 10px; max-height: 320px; overflow: auto; white-space: pre-wrap; }
+    table.unr { width: 100%; border-collapse: collapse; font-size: 13px; }
+    table.unr td, table.unr th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); }
+    table.unr th { font-size: 11px; text-transform: uppercase; color: var(--muted); }
+    .msg { font-size: 13px; margin-left: 8px; }
+    .login-box { max-width: 360px; margin: 12vh auto; }
+    .hidden { display: none; }
+    .toplinks a { color: var(--ink-soft); font-size: 13px; text-decoration: none; margin-left: 14px; }
+    .toplinks a:hover { color: var(--ink); }
+  </style>
+</head>
+<body>
+  <!-- LOGIN -->
+  <div id="login" class="admin-wrap hidden">
+    <div class="panel login-box">
+      <h2>OAWS Admin — Login</h2>
+      <div class="row">
+        <input type="password" id="login-pw" placeholder="Admin-Passwort" style="flex:1" />
+      </div>
+      <div class="row">
+        <button class="btn" id="login-btn">Anmelden</button>
+        <span class="msg bad" id="login-msg"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dash" class="admin-wrap hidden">
+    <div class="row" style="justify-content:space-between">
+      <div>
+        <h1>OAWS Admin</h1>
+        <p class="sub">Tracker steuern, Keys & Overrides pflegen.</p>
+      </div>
+      <div class="toplinks">
+        <a href="/" target="_blank">↗ Dashboard ansehen</a>
+        <a href="#" id="logout">Abmelden</a>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Status</h2>
+      <div class="stat" id="stat"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Pipeline</h2>
+      <div class="row">
+        <button class="btn" id="refresh-btn">Jetzt aktualisieren</button>
+        <button class="btn secondary" id="log-btn">Log neu laden</button>
+        <span class="badge" id="run-badge"></span>
+        <span class="msg" id="refresh-msg"></span>
+      </div>
+      <pre class="log" id="log">(Log lädt …)</pre>
+    </div>
+
+    <div class="panel">
+      <h2>API-Keys</h2>
+      <div class="row">
+        <label class="fld" style="flex:1">OPENFIGI_API_KEY <span id="key-state" style="color:var(--muted)"></span>
+          <input type="text" id="openfigi" placeholder="Key eintragen oder ändern" />
+        </label>
+      </div>
+      <div class="row"><button class="btn" id="key-btn">Key speichern</button><span class="msg" id="key-msg"></span></div>
+    </div>
+
+    <div class="panel">
+      <h2>Einstellungen</h2>
+      <div class="row">
+        <label class="fld">Entry-Kurs-Regel
+          <select id="entry-mode">
+            <option value="on_or_before">letzter Close ≤ Vorstellungstag</option>
+            <option value="on_or_after">erster Close ≥ Vorstellungstag</option>
+          </select>
+        </label>
+        <label class="fld">Umfang
+          <select id="scope">
+            <option value="null">Vollarchiv (alle Folgen)</option>
+            <option value="90">nur letzte 90 Tage</option>
+            <option value="30">nur letzte 30 Tage</option>
+          </select>
+        </label>
+        <label class="fld">Tägliche Cron-Zeit (Berlin)
+          <input type="time" id="schedule" />
+        </label>
+      </div>
+      <div class="row"><button class="btn" id="settings-btn">Einstellungen speichern</button><span class="msg" id="settings-msg"></span></div>
+    </div>
+
+    <div class="panel">
+      <h2>Passwort ändern</h2>
+      <div class="row">
+        <input type="password" id="newpw" placeholder="Neues Passwort (min. 8)" />
+        <button class="btn" id="pw-btn">Passwort setzen</button>
+        <span class="msg" id="pw-msg"></span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>WKN-Overrides <span id="unr-count" style="color:var(--muted);text-transform:none;letter-spacing:0"></span></h2>
+      <div class="row">
+        <input id="ov-wkn" placeholder="WKN" style="width:110px" />
+        <input id="ov-yahoo" placeholder="Yahoo-Ticker (z.B. SAP.DE)" style="width:170px" />
+        <input id="ov-ccy" placeholder="Whg. (opt.)" style="width:100px" />
+        <input id="ov-name" placeholder="Name (opt.)" style="flex:1" />
+        <button class="btn" id="ov-btn">Override setzen</button>
+        <span class="msg" id="ov-msg"></span>
+      </div>
+      <p class="sub" style="margin:6px 0 10px">Ungelöste WKNs (klick füllt das Formular):</p>
+      <table class="unr"><thead><tr><th>WKN</th><th>FIGI-Name</th></tr></thead><tbody id="unr-rows"></tbody></table>
+    </div>
+  </div>
+
+  <script src="/admin.js"></script>
+</body>
+</html>

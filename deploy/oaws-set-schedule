@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Setzt die taegliche Cron-Zeit des OAWS-Update-Timers. Aufruf: oaws-set-schedule HH:MM
+# Wird vom Admin-Panel via `sudo -n` getriggert (admin hat passwordless sudo).
+set -euo pipefail
+HHMM="${1:?Usage: oaws-set-schedule HH:MM}"
+if [[ ! "$HHMM" =~ ^([01][0-9]|2[0-3]):[0-5][0-9]$ ]]; then
+  echo "Ungueltige Zeit: $HHMM (erwartet HH:MM)" >&2; exit 1
+fi
+cat >/etc/systemd/system/oaws-update.timer <<EOF
+[Unit]
+Description=OAWS taeglicher Pipeline-Lauf (Timer)
+
+[Timer]
+OnCalendar=*-*-* ${HHMM}:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+systemctl daemon-reload
+systemctl restart oaws-update.timer
+echo "OAWS-Timer gesetzt auf ${HHMM} (System-TZ $(timedatectl show -p Timezone --value 2>/dev/null))"

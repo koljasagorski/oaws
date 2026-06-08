@@ -1,0 +1,11 @@
+[Unit]
+Description=OAWS taeglicher Pipeline-Lauf (Timer)
+
+[Timer]
+# Uhrzeit in System-TZ (setup-vm.sh setzt Europe/Berlin). Aenderbar via
+# /usr/local/bin/oaws-set-schedule HH:MM (Admin-Einstellungen).
+OnCalendar=*-*-* 08:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

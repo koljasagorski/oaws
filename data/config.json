@@ -1,0 +1,5 @@
+{
+  "entry_mode": "on_or_before",
+  "scope_days": null,
+  "schedule": "08:00"
+}
