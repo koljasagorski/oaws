@@ -29,6 +29,8 @@ DEFAULT_CONFIG = {
     "entry_mode": "on_or_before",  # oder "on_or_after"
     "scope_days": None,             # None = Vollarchiv, sonst nur letzte N Tage
     "schedule": "08:00",            # taegliche Cron-Zeit (Europe/Berlin)
+    "retry_per_run": 40,            # so viele fehlgeschlagene WKNs pro Lauf rotierend nachziehen
+    "throttle": 1.5,                # Sekunden Pause je WKN beim Aufloesen (schont Yahoo)
 }
 
 

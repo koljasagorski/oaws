@@ -228,6 +228,10 @@ def main() -> None:
                     help="Nur WKNs aus Vorstellungen der letzten N Tage aufloesen (Slice-first)")
     ap.add_argument("--retry-failed", action="store_true",
                     help="Auch fruehere resolved=false erneut versuchen")
+    ap.add_argument("--retry-limit", type=int, default=None,
+                    help="Max. Anzahl fehlgeschlagener WKNs pro Lauf (rotierend, aelteste zuerst)")
+    ap.add_argument("--throttle", type=float, default=0.0,
+                    help="Sekunden Pause je WKN (schont Yahoo/yfinance-Rate-Limit)")
     ap.add_argument("--limit", type=int, default=None, help="Max. neue WKNs (Debug)")
     args = ap.parse_args()
 
@@ -247,7 +251,7 @@ def main() -> None:
     wkn_names = {}  # fuer Yahoo-Namenssuche-Fallback
     for m in mentions:
         wkn_names.setdefault(m["wkn"], m.get("name"))
-    want = []
+    new_wkns, failed = [], []
     seen = set()
     for m in mentions:
         w = m["wkn"]
@@ -256,11 +260,16 @@ def main() -> None:
         seen.add(w)
         entry = cache.get(w)
         if entry is None:
-            want.append(w)
+            new_wkns.append(w)
         elif entry.get("source") == "override":
             continue
         elif entry.get("resolved") is False and args.retry_failed:
-            want.append(w)
+            failed.append(w)
+    # Fehlgeschlagene rotierend: am laengsten nicht versuchte zuerst
+    failed.sort(key=lambda w: cache.get(w, {}).get("last_try", ""))
+    if args.retry_limit is not None:
+        failed = failed[:args.retry_limit]
+    want = new_wkns + failed  # neue immer, fehlgeschlagene begrenzt/rotierend
     if args.limit:
         want = want[:args.limit]
 
@@ -278,7 +287,10 @@ def main() -> None:
         nm = next((d.get("name") for d in data if d.get("name")), None)
         if nm:
             res["name"] = nm.title() if nm.isupper() else nm
+        res["last_try"] = date.today().isoformat()
         cache[w] = res
+        if args.throttle:
+            time.sleep(args.throttle)
         if i % 10 == 0 or i == len(want):
             print(f"  resolved {i}/{len(want)}", file=sys.stderr)
             save_json(WKN_MAP, cache)  # inkrementell sichern

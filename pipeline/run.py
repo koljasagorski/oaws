@@ -69,6 +69,13 @@ def main() -> int:
             _step(fh, "episodes", [PY, f"{pdir}/fetch_episodes.py"], env)
             _step(fh, "extract", [PY, f"{pdir}/extract_stocks.py"], env)
             rargs = [PY, f"{pdir}/resolve_tickers.py"]
+            # Fehlgeschlagene WKNs rotierend & gedrosselt nachziehen (Yahoo-Rate-Limit schonen)
+            retry_n = int(cfg.get("retry_per_run", 40) or 0)
+            throttle = float(cfg.get("throttle", 1.5) or 0)
+            if retry_n > 0:
+                rargs += ["--retry-failed", "--retry-limit", str(retry_n)]
+            if throttle > 0:
+                rargs += ["--throttle", str(throttle)]
             pargs = [PY, f"{pdir}/fetch_prices.py", "--mode", mode]
             if scope is not None:
                 rargs += ["--since-days", str(scope)]
