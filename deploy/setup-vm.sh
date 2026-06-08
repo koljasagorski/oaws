@@ -13,7 +13,7 @@ sudo timedatectl set-timezone Europe/Berlin || true
 
 # 2) System-Pakete
 sudo apt-get update -qq
-sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3-venv python3-pip rsync ca-certificates
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3-venv python3-pip rsync ca-certificates git
 
 # 3) venv + Python-Deps
 [ -d .venv ] || python3 -m venv .venv
