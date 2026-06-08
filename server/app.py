@@ -68,6 +68,16 @@ app.add_middleware(SessionMiddleware, secret_key=get_session_secret(),
                    same_site="lax", https_only=False, max_age=60 * 60 * 24 * 14)
 
 
+@app.middleware("http")
+async def revalidate_assets(request: Request, call_next):
+    """CSS/JS/HTML/JSON immer revalidieren (kein veraltetes Cache-Asset im Browser)."""
+    resp = await call_next(request)
+    p = request.url.path
+    if p == "/" or p == "/admin" or p.endswith((".css", ".js", ".html", ".json")):
+        resp.headers["Cache-Control"] = "no-cache"
+    return resp
+
+
 def require_auth(request: Request):
     if not request.session.get("auth"):
         raise HTTPException(status_code=401, detail="nicht angemeldet")

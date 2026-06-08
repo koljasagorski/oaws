@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet" />
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  html, body { width: 1200px; height: 630px; }
+  body {
+    background: #fbfaf7; color: #1a1a18; font-family: "Inter", sans-serif;
+    padding: 72px 76px; position: relative; overflow: hidden;
+  }
+  .mark { display: flex; align-items: center; gap: 14px; }
+  .mark .logo { width: 44px; height: 44px; border-radius: 11px; background: #1a1a18; display: grid; place-items: center; }
+  .mark .logo svg { display: block; }
+  .mark .kicker { font-family: "IBM Plex Mono", monospace; font-size: 17px; letter-spacing: .18em; text-transform: uppercase; color: #8a847b; }
+  h1 { font-family: "Source Serif 4", serif; font-weight: 700; font-size: 92px; line-height: .98; letter-spacing: -.025em; margin-top: 92px; max-width: 18ch; }
+  .sub { font-size: 27px; color: #555049; margin-top: 26px; max-width: 30ch; line-height: 1.35; }
+  .sub em { font-family: "Source Serif 4", serif; font-style: italic; }
+  .stats { position: absolute; left: 76px; bottom: 70px; display: flex; gap: 40px; }
+  .stat .v { font-family: "Source Serif 4", serif; font-weight: 700; font-size: 40px; line-height: 1; }
+  .stat .v.pos { color: #137a4b; }
+  .stat .k { font-size: 15px; color: #8a847b; margin-top: 8px; text-transform: uppercase; letter-spacing: .05em; }
+  .url { position: absolute; right: 76px; bottom: 74px; font-family: "IBM Plex Mono", monospace; font-size: 19px; color: #1a1a18; }
+  .chart { position: absolute; right: -20px; top: 90px; opacity: .9; }
+</style>
+</head>
+<body>
+  <div class="mark">
+    <div class="logo">
+      <svg viewBox="0 0 64 64" width="30" height="30"><polyline points="12,45 25,33 35,39 52,17" fill="none" stroke="#fbfaf7" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="52" cy="17" r="4.5" fill="#1fa463"/></svg>
+    </div>
+    <div class="kicker">Ohne Aktien wird schwer · Tracker</div>
+  </div>
+
+  <svg class="chart" width="430" height="300" viewBox="0 0 430 300" fill="none">
+    <polyline points="0,250 70,210 130,235 200,150 270,175 340,80 430,40" stroke="#e0dccf" stroke-width="3"/>
+    <polyline points="0,250 70,210 130,235 200,150 270,175 340,80 430,40" stroke="#1fa463" stroke-width="3" stroke-dasharray="2 0" opacity=".0"/>
+  </svg>
+
+  <h1>OAWS Aktien-Tracker</h1>
+  <p class="sub">Jede vorgestellte Aktie — Kurs am <em>Vorstellungstag</em> gegen heute.</p>
+
+  <div class="stats">
+    <div class="stat"><div class="v pos">+34&thinsp;%</div><div class="k">Ø-Depot</div></div>
+    <div class="stat"><div class="v">1617</div><div class="k">Aktien</div></div>
+    <div class="stat"><div class="v">1415</div><div class="k">Folgen</div></div>
+  </div>
+  <div class="url">oaws.sagorski.org</div>
+</body>
+</html>

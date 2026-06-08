@@ -3,12 +3,52 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OAWS Aktien-Tracker</title>
-  <meta name="description" content="Jede im Podcast „Ohne Aktien wird schwer" vorgestellte Aktie: Kurs am Vorstellungstag vs. heute." />
+  <title>OAWS Aktien-Tracker — jede vorgestellte Aktie vs. heute</title>
+  <meta name="description" content="Jede im Podcast „Ohne Aktien wird schwer" (OAWS) vorgestellte Aktie: Kurs am Tag der Vorstellung gegen den heutigen Kurs. Sortierbare Tabelle, Gewinner/Verlierer, täglich aktualisiert. Keine Anlageberatung." />
+  <link rel="canonical" href="https://oaws.sagorski.org/" />
+  <meta name="robots" content="index, follow" />
+  <meta name="author" content="Kolja Sagorski" />
+  <meta name="theme-color" content="#fbfaf7" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="OAWS Aktien-Tracker" />
+  <meta property="og:locale" content="de_DE" />
+  <meta property="og:url" content="https://oaws.sagorski.org/" />
+  <meta property="og:title" content="OAWS Aktien-Tracker — jede vorgestellte Aktie vs. heute" />
+  <meta property="og:description" content="Jede im Podcast „Ohne Aktien wird schwer" vorgestellte Aktie: Kurs am Vorstellungstag gegen heute. Sortierbar, mit Gewinnern/Verlierern, täglich aktualisiert." />
+  <meta property="og:image" content="https://oaws.sagorski.org/og-image.png?v=1" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="OAWS Aktien-Tracker — Kurs am Vorstellungstag gegen heute" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="OAWS Aktien-Tracker — jede vorgestellte Aktie vs. heute" />
+  <meta name="twitter:description" content="Jede im OAWS-Podcast vorgestellte Aktie: Kurs am Vorstellungstag gegen heute. Täglich aktualisiert." />
+  <meta name="twitter:image" content="https://oaws.sagorski.org/og-image.png?v=1" />
+
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=3" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "OAWS Aktien-Tracker",
+    "url": "https://oaws.sagorski.org/",
+    "applicationCategory": "FinanceApplication",
+    "operatingSystem": "Web",
+    "inLanguage": "de",
+    "description": "Jede im Podcast „Ohne Aktien wird schwer\" (OAWS) vorgestellte Aktie: Kurs am Tag der Vorstellung gegen den heutigen Kurs. Täglich aktualisiert.",
+    "image": "https://oaws.sagorski.org/og-image.png",
+    "author": { "@type": "Person", "name": "Kolja Sagorski", "url": "https://linkedin.com/in/koljasagorski" },
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+    "isAccessibleForFree": true
+  }
+  </script>
 </head>
 <body>
   <header class="site-header">
@@ -81,6 +121,6 @@
     </div>
   </footer>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>
