@@ -34,7 +34,7 @@ def _log(fh, msg):
     fh.flush()
 
 
-def _step(fh, name, argv, env):
+def _step(fh, name, argv, env, critical=True):
     _log(fh, f"START {name}: {' '.join(argv)}")
     p = subprocess.run(argv, cwd=str(ROOT), env=env,
                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
@@ -43,7 +43,13 @@ def _step(fh, name, argv, env):
     fh.flush()
     _log(fh, f"END {name} rc={p.returncode}")
     if p.returncode != 0:
-        raise RuntimeError(f"{name} fehlgeschlagen (rc={p.returncode})")
+        msg = f"{name} fehlgeschlagen (rc={p.returncode})"
+        if critical:
+            raise RuntimeError(msg)
+        # Weiche Phase (Anreicherung): nicht abbrechen, mit vorhandenem Cache
+        # weiterbauen – sonst killt ein flatterndes yfinance den ganzen Tageslauf.
+        _log(fh, f"WARN {msg} – weiche Phase, fahre fort")
+        return None
     return (p.stdout or "").strip().splitlines()[-1:] or [""]
 
 
@@ -55,6 +61,7 @@ def main() -> int:
     started = _now()
     ok = False
     summary = ""
+    warnings: list[str] = []
     cfg = load_config()
     env = dict(os.environ)
     env.update({k: v for k, v in read_env().items() if v})
@@ -80,11 +87,17 @@ def main() -> int:
             if scope is not None:
                 rargs += ["--since-days", str(scope)]
                 pargs += ["--since-days", str(scope)]
-            _step(fh, "resolve", rargs, env)
-            _step(fh, "prices", pargs, env)
+            # resolve + prices sind Anreicherung und netzabhaengig (yfinance):
+            # weich halten, damit build immer laeuft und data.json frisch bleibt.
+            if _step(fh, "resolve", rargs, env, critical=False) is None:
+                warnings.append("resolve")
+            if _step(fh, "prices", pargs, env, critical=False) is None:
+                warnings.append("prices")
             last = _step(fh, "build", [PY, f"{pdir}/build.py"], env)
             summary = last[0] if last else ""
-            _log(fh, "RUN done OK")
+            if warnings:
+                summary = f"{summary} | Warnung: {', '.join(warnings)} uebersprungen"
+            _log(fh, "RUN done OK" + (f" (Warnungen: {', '.join(warnings)})" if warnings else ""))
             ok = True
     except Exception as e:  # noqa: BLE001
         summary = f"FEHLER: {e}"
@@ -97,7 +110,8 @@ def main() -> int:
         LOCK.unlink(missing_ok=True)
     save_json(LAST_RUN, {
         "started": started, "finished": _now(), "ok": ok,
-        "summary": summary, "scope_days": scope, "entry_mode": mode,
+        "summary": summary, "warnings": warnings,
+        "scope_days": scope, "entry_mode": mode,
     })
     return 0 if ok else 1
 

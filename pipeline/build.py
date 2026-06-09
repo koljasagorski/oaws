@@ -39,6 +39,7 @@ def build_rows(mentions, wkn_map, prices):
         prec = prices.get(sym) if sym else None
         entry = (prec or {}).get("entry_by_date", {}).get(m["presented_date"]) if prec else None
         now = (prec or {}).get("latest") if prec else None
+        now_date = (prec or {}).get("latest_date") if prec else None
         ccy = (prec or {}).get("currency") or meta.get("currency")
         resolved = bool(sym) and meta.get("resolved") is not False \
             and entry is not None and now is not None
@@ -52,6 +53,7 @@ def build_rows(mentions, wkn_map, prices):
             "guid": m["guid"],
             "entry": round(entry, 4) if entry is not None else None,
             "now": round(now, 4) if now is not None else None,
+            "now_date": now_date,
             "currency": ccy,
             "abs_delta": round(now - entry, 4) if (resolved) else None,
             "pct_delta": p,

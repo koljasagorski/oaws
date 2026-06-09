@@ -12,6 +12,10 @@ mkdir -p data
   .venv/bin/pip install -q -r requirements.txt
   # systemd-Units evtl. aktualisiert -> neu rendern (idempotent)
   sudo systemctl daemon-reload 2>/dev/null || true
+  # data.json aus vorhandenem Cache neu rechnen, damit build-abhaengige
+  # Frontend-Features (z.B. neue Felder) sofort sichtbar sind – nicht erst
+  # beim naechsten Tageslauf. Nicht-fatal: ein Build-Hickup blockiert kein Deploy.
+  .venv/bin/python pipeline/build.py || echo "build uebersprungen (rc=$?)"
   echo "deployed $(git rev-parse --short HEAD)"
 } >> data/deploy.log 2>&1
 # Web-Dienst neu starten, damit Server-Code-Aenderungen greifen (Frontend ist statisch)

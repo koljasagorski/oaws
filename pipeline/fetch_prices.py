@@ -55,17 +55,18 @@ def entry_close(sym, presented_date: str, mode: str = "on_or_before"):
 
 
 def latest_close(sym):
+    """Letzter verfuegbarer Close -> (close, date_iso). Fehlt -> (None, None)."""
     h = _history(sym, period="5d")
     if h is None or h.empty:
-        return None
-    return float(h["Close"].iloc[-1])
+        return None, None
+    return float(h["Close"].iloc[-1]), h.index[-1].date().isoformat()
 
 
 def latest_closes_batch(symbols):
     """Letzte Closes vieler Symbole in EINEM yfinance-Download (schnell/schonend).
 
     Faellt pro fehlendem Symbol nicht zurueck – Luecken werden danach einzeln
-    nachgezogen. Gibt dict sym -> close|None.
+    nachgezogen. Gibt dict sym -> (close, date_iso); fehlt -> (None, None).
     """
     import yfinance as yf
     out = {}
@@ -84,9 +85,10 @@ def latest_closes_batch(symbols):
             else:
                 col = df[sym]["Close"]
             col = col.dropna()
-            out[sym] = float(col.iloc[-1]) if not col.empty else None
+            out[sym] = ((float(col.iloc[-1]), col.index[-1].date().isoformat())
+                        if not col.empty else (None, None))
         except Exception:
-            out[sym] = None
+            out[sym] = (None, None)
     return out
 
 
@@ -122,21 +124,34 @@ def main() -> None:
     batch = latest_closes_batch(need.keys())
 
     # 2) entry-Closes nur fuer noch nicht gecachte (sym, date)-Paare
+    failed = 0
     for i, (sym, dates) in enumerate(sorted(need.items()), 1):
-        rec = cache.get(sym) or {"entry_by_date": {}, "latest": None, "currency": None}
+        rec = cache.get(sym) or {"entry_by_date": {}, "latest": None,
+                                 "latest_date": None, "currency": None}
         rec.setdefault("entry_by_date", {})
         rec["currency"] = sym_ccy.get(sym, rec.get("currency"))
-        rec["latest"] = batch.get(sym) if batch.get(sym) is not None else latest_close(sym)
-        for d in sorted(dates):
-            if d not in rec["entry_by_date"]:
-                rec["entry_by_date"][d] = entry_close(sym, d, mode=args.mode)
+        # Ein einzelnes flatterndes Symbol (yfinance/Netz) darf den Lauf nicht
+        # killen – Luecken bleiben uncached und werden naechsten Lauf nachgezogen.
+        try:
+            b = batch.get(sym)
+            close, cdate = b if b is not None else (None, None)
+            if close is None:
+                close, cdate = latest_close(sym)
+            rec["latest"], rec["latest_date"] = close, cdate
+            for d in sorted(dates):
+                if d not in rec["entry_by_date"]:
+                    rec["entry_by_date"][d] = entry_close(sym, d, mode=args.mode)
+        except Exception as e:  # noqa: BLE001
+            failed += 1
+            print(f"  WARN prices {sym}: {e}")
         cache[sym] = rec
         if i % 25 == 0 or i == total:
             print(f"  prices {i}/{total} ({sym})")
             save_json(PRICES, cache)
 
     save_json(PRICES, cache)
-    print(f"fetch_prices: {total} Symbole, mode={args.mode} -> {PRICES}")
+    print(f"fetch_prices: {total} Symbole, mode={args.mode}, "
+          f"{failed} mit Fehler -> {PRICES}")
 
 
 if __name__ == "__main__":

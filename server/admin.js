@@ -32,7 +32,7 @@ async function loadStatus() {
     ["Aktien", m.unique_wkns ?? "–"],
     ["Folgen", m.episodes ?? "–"],
     ["Ungelöste WKNs", d.unresolved_count ?? "–"],
-    ["Letzter Lauf", `<span class="${lr.ok ? "ok" : "bad"}">${lr.ok ? "OK" : (lr.summary ? "Fehler" : "–")}</span>`],
+    ["Letzter Lauf", `<span class="${lr.ok ? "ok" : "bad"}" title="${(lr.summary || "").replace(/"/g, "&quot;")}">${lr.ok ? ((lr.warnings && lr.warnings.length) ? "OK ⚠" : "OK") : (lr.summary ? "Fehler" : "–")}</span>`],
     ["Stand", fmtTs(m.as_of)],
   ].map(([k, v]) => `<div><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
   const badge = $("#run-badge");

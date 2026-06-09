@@ -161,7 +161,10 @@ function renderRows() {
       <td class="ticker">${x.ticker ? esc(x.ticker) : '<span class="na">–</span>'}</td>
       <td>${fmtDate(x.presented_date)}</td>
       <td class="num">${x.entry === null ? '<span class="na">–</span>' : fmtNum(x.entry)}</td>
-      <td class="num">${x.now === null ? '<span class="na">–</span>' : fmtNum(x.now)}</td>
+      <td class="num">${x.now === null ? '<span class="na">–</span>'
+        : (x.now_date
+            ? `<span class="px" title="Kurs vom ${esc(fmtDate(x.now_date))}">${fmtNum(x.now)}</span>`
+            : fmtNum(x.now))}</td>
       <td>${x.currency || '<span class="na">–</span>'}</td>
       <td class="num">${x.abs_delta === null ? '<span class="na">–</span>' : fmtNum(x.abs_delta)}</td>
       <td class="num">${pctCell}</td>
